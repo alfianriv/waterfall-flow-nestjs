@@ -139,9 +139,4 @@ export class AppController {
 Contributions are welcome! Please open an issue or submit a pull request if you have any improvements or bug fixes.
 
 ## License
-
-## License
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-```
-
-Feel free to modify the content as needed to fit your specific implementation details and preferences.
