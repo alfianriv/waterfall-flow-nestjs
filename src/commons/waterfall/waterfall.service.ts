@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { FALLBACK_STEP_METADATA_KEY } from 'src/decorators/fallback.decorator';
+import { ROLLBACK_STEP_METADATA_KEY } from 'src/decorators/rollback.decorator';
 import { STEP_METADATA_KEY } from 'src/decorators/step.decorator';
 import { uid } from 'uid';
 
@@ -21,7 +21,7 @@ export class WaterfallService {
       }
 
       const fallbackOrder = Reflect.getMetadata(
-        FALLBACK_STEP_METADATA_KEY,
+        ROLLBACK_STEP_METADATA_KEY,
         this,
         methodName,
       );

@@ -1,73 +1,147 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# NestJS Waterfall Flow Example
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+This repository contains a NestJS application demonstrating the implementation of a waterfall flow function with rollback capabilities in case any step encounters an error.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Table of Contents
 
-## Description
+- [Introduction](#introduction)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Contributing](#contributing)
+- [License](#license)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Introduction
+
+This project showcases how to implement a waterfall flow in a NestJS application. A waterfall flow ensures that each step in a series of asynchronous operations is executed sequentially. If any step fails, the previous steps can be rolled back to maintain data consistency.
+
+## Features
+
+- Sequential execution of asynchronous operations
+- Rollback mechanism for error handling
+- NestJS framework
 
 ## Installation
 
-```bash
-$ npm install
+1. Clone the repository:
+  ```sh
+  git clone https://github.com/your-username/nestjs-waterfall-flow.git
+  cd nestjs-waterfall-flow
+  ```
+
+2. Install dependencies:
+  ```sh
+  npm install
+  ```
+
+3. Run the application:
+  ```
+  npm run start
+  ```
+
+## Usage
+
+1. Ensure the application is running:
+  ``
+  npm run start
+  ```
+
+2. The API will be available at `http://localhost:3000`.
+
+3. You can test the waterfall flow implementation by sending requests to the appropriate endpoints. Refer to the API documentation for detailed information on available endpoints and their usage.
+
+## Example
+
+Here is an example of how to use the waterfall flow implementation:
+
+1. Create a service that implements the waterfall flow:
+
+```typescript
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { WaterfallService } from './commons/waterfall/waterfall.service';
+import { Step } from './decorators/step.decorator';
+import { Rollback } from './decorators/rollback.decorator';
+
+@Injectable()
+export class AppService extends WaterfallService {
+  @Step(1)
+  async logFirst(eventId, data) {
+    console.log('Step 1 [eventId]:', eventId);
+    console.log('Step 1 [data]:', data);
+
+    return {
+      step: 1,
+      message: 'this data from step 1',
+    };
+  }
+
+  @Rollback(1)
+  async fallbackFirst(eventId) {
+    console.log('Rollback 1 [eventId]:', eventId);
+  }
+
+  @Step(2)
+  async logSecond(eventId, data) {
+    console.log('Step 2 [eventId]:', eventId);
+    console.log('Step 2 [data]:', data);
+
+    return {
+      step: 2,
+      message: 'this data from step 2',
+    };
+  }
+
+  @Rollback(2)
+  async fallbackSecond(eventId) {
+    console.log('Rollback 2 [eventId]:', eventId);
+  }
+
+  @Step(3)
+  async logThird(eventId) {
+    throw new BadRequestException('Something error in step 3');
+  }
+
+  @Rollback(3)
+  async fallbackThird(eventId) {
+    console.log('Rollback 3 [eventId]:', eventId);
+  }
+
+  async execute() {
+    const data = { step: 0, message: 'this data from initial function' };
+    await this.executeSteps(data);
+    return 'Step Executed';
+  }
+}
+
 ```
 
-## Running the app
+2. Inject the service into your controller and use it:
 
-```bash
-# development
-$ npm run start
+```typescript
+import { Controller, Get } from '@nestjs/common';
+import { AppService } from './app.service';
 
-# watch mode
-$ npm run start:dev
+@Controller()
+export class AppController {
+  constructor(private readonly appService: AppService) {}
 
-# production mode
-$ npm run start:prod
+  @Get()
+  getHello() {
+    return this.appService.execute();
+  }
+}
 ```
 
-## Test
+3. Send a POST request to /example/execute to trigger the waterfall flow.
 
-```bash
-# unit tests
-$ npm run test
+## Contributing
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Contributions are welcome! Please open an issue or submit a pull request if you have any improvements or bug fixes.
 
 ## License
 
-Nest is [MIT licensed](LICENSE).
+## License
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+```
+
+Feel free to modify the content as needed to fit your specific implementation details and preferences.

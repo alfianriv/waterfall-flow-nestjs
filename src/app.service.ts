@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { WaterfallService } from './commons/waterfall/waterfall.service';
 import { Step } from './decorators/step.decorator';
-import { Fallback } from './decorators/fallback.decorator';
+import { Rollback } from './decorators/rollback.decorator';
 
 @Injectable()
 export class AppService extends WaterfallService {
@@ -16,7 +16,7 @@ export class AppService extends WaterfallService {
     };
   }
 
-  @Fallback(1)
+  @Rollback(1)
   async fallbackFirst(eventId) {
     console.log('Rollback 1 [eventId]:', eventId);
   }
@@ -32,7 +32,7 @@ export class AppService extends WaterfallService {
     };
   }
 
-  @Fallback(2)
+  @Rollback(2)
   async fallbackSecond(eventId) {
     console.log('Rollback 2 [eventId]:', eventId);
   }
@@ -42,7 +42,7 @@ export class AppService extends WaterfallService {
     throw new BadRequestException('Something error in step 3');
   }
 
-  @Fallback(3)
+  @Rollback(3)
   async fallbackThird(eventId) {
     console.log('Rollback 3 [eventId]:', eventId);
   }
