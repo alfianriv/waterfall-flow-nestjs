@@ -42,7 +42,7 @@ This project showcases how to implement a waterfall flow in a NestJS application
 ## Usage
 
 1. Ensure the application is running:
-  ``
+  ```
   npm run start
   ```
 
