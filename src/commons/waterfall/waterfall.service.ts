@@ -7,6 +7,7 @@ import { uid } from 'uid';
 export class WaterfallService {
   private steps: { methodName: string; order: number }[] = [];
   private fallbacks: { methodName: string; order: number }[] = [];
+  private forNextData: any;
 
   constructor() {
     this.collectSteps();
@@ -37,23 +38,32 @@ export class WaterfallService {
   async executeSteps(params?) {
     const eventId = uid(6);
     let executedSteps = [];
-    let returnedData: any;
+    let returnedData;
     try {
-      for (const step of this.steps) {
-        let paramPassed = params;
-        if (step.order > 1) {
-          paramPassed = returnedData;
-        }
-        const result = await (this as any)[step.methodName](
-          eventId,
-          paramPassed,
-        );
-        returnedData = result;
-        executedSteps.push(step);
-      }
+      const result = await (this as any)[this.steps[0].methodName](eventId, params);
+      executedSteps.push(this.steps[0]);
+      returnedData = result;
+      // Run the rest of the steps in the background
+      this.runRemainingSteps(executedSteps, eventId);
     } catch (error) {
       await this.executeFallbacks(executedSteps, eventId);
+      this.setDataForNextStep(null);
       throw error; // Re-throw the error after handling fallbacks
+    }
+    return returnedData;
+  }
+
+  private async runRemainingSteps(executedSteps, eventId) {
+    for (const step of this.steps) {
+      if (!executedSteps.includes(step)) {
+        try {
+          await (this as any)[step.methodName](eventId, this.forNextData);
+          executedSteps.push(step);
+        } catch (error) {
+          await this.executeFallbacks(executedSteps, eventId);
+          console.error(error);
+        }
+      }
     }
   }
 
@@ -66,5 +76,9 @@ export class WaterfallService {
         await (this as any)[fallback.methodName](eventId);
       }
     }
+  }
+
+  setDataForNextStep(data) {
+    this.forNextData = data;
   }
 }

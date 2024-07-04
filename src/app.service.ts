@@ -10,9 +10,13 @@ export class AppService extends WaterfallService {
     console.log('Step 1 [eventId]:', eventId);
     console.log('Step 1 [data]:', data);
 
-    return {
+    this.setDataForNextStep({
       step: 1,
       message: 'this data from step 1',
+    });
+
+    return {
+      status: 'ok',
     };
   }
 
@@ -26,10 +30,10 @@ export class AppService extends WaterfallService {
     console.log('Step 2 [eventId]:', eventId);
     console.log('Step 2 [data]:', data);
 
-    return {
+    this.setDataForNextStep({
       step: 2,
       message: 'this data from step 2',
-    };
+    });
   }
 
   @Rollback(2)
@@ -49,7 +53,6 @@ export class AppService extends WaterfallService {
 
   async execute() {
     const data = { step: 0, message: 'this data from initial function' };
-    await this.executeSteps(data);
-    return 'Step Executed';
+    return this.executeSteps(data);
   }
 }
